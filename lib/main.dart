@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -19,6 +20,7 @@ import 'package:uuid/uuid.dart';
 
 import 'generate_material_color.dart';
 import 'models/theme_mode_adapter.dart';
+import 'services/no_op_downloads_helper.dart';
 import 'services/theme_mode_helper.dart';
 import 'setup_logging.dart';
 import 'screens/user_selector.dart';
@@ -56,8 +58,14 @@ void main() async {
     _migrateDownloadLocations();
     _setupFinampUserHelper();
     _setupJellyfinApiData();
-    await _setupDownloader();
-    await _setupDownloadsHelper();
+
+    if (Platform.isAndroid || Platform.isIOS) {
+      await _setupDownloader();
+      _setupDownloadsHelper();
+    } else {
+      _setupNoOpDownloadsHelper();
+    }
+
     await _setupAudioServiceHelper();
   } catch (e) {
     hasFailed = true;
@@ -87,8 +95,12 @@ void _setupJellyfinApiData() {
   GetIt.instance.registerSingleton(JellyfinApiHelper());
 }
 
-Future<void> _setupDownloadsHelper() async {
+void _setupDownloadsHelper() {
   GetIt.instance.registerSingleton(DownloadsHelper());
+}
+
+void _setupNoOpDownloadsHelper() {
+  GetIt.instance.registerSingleton<DownloadsHelper>(NoOpDownloadsHelper());
 }
 
 Future<void> _setupDownloader() async {
