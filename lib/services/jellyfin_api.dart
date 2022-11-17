@@ -430,8 +430,12 @@ Future<String> getAuthHeader() async {
     authHeader = '${authHeader}Device="${iosDeviceInfo.name}", ';
     authHeader =
         '${authHeader}DeviceId="${iosDeviceInfo.identifierForVendor}", ';
+  } else if (Platform.isLinux) {
+    LinuxDeviceInfo linuxDeviceInfo = await deviceInfo.linuxInfo;
+    authHeader = '${authHeader}Device="${linuxDeviceInfo.name}", ';
+    authHeader = '${authHeader}DeviceId="${linuxDeviceInfo.machineId}", ';
   } else {
-    throw "getAuthHeader() only supports Android and iOS";
+    throw "getAuthHeader() only supports Android , iOS, or Linux";
   }
 
   PackageInfo packageInfo = await PackageInfo.fromPlatform();
