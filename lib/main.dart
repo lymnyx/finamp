@@ -63,6 +63,7 @@ void main() async {
       await _setupDownloader();
       _setupDownloadsHelper();
     } else {
+      _setupNoOpDownloader();
       _setupNoOpDownloadsHelper();
     }
 
@@ -115,6 +116,10 @@ Future<void> _setupDownloader() async {
   // https://github.com/fluttercommunity/flutter_downloader/issues/445
 
   FlutterDownloader.registerCallback(_DummyCallback.callback);
+}
+
+void _setupNoOpDownloader() {
+  GetIt.instance.registerSingleton(DownloadUpdateStream());
 }
 
 // TODO: move this function somewhere else since it's also run in MusicPlayerBackgroundTask.dart

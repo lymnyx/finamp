@@ -419,8 +419,8 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler {
     _sleepTimerDuration = duration;
 
     _sleepTimer.value = Timer(duration, () async {
-        _sleepTimer.value = null;
-        return await pause();
+      _sleepTimer.value = null;
+      return await pause();
     });
     return _sleepTimer.value!;
   }
@@ -530,9 +530,12 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler {
     // 0.18), the value would be wrong if changed while a song was playing since
     // Hive is bad at multi-isolate stuff.
 
-    final androidId = Platform.isAndroid ? await const AndroidId().getId() : null;
+    final androidId =
+        Platform.isAndroid ? await const AndroidId().getId() : null;
     final iosDeviceInfo =
         Platform.isIOS ? await DeviceInfoPlugin().iosInfo : null;
+    final linuxDeviceInfo =
+        Platform.isLinux ? await DeviceInfoPlugin().linuxInfo : null;
 
     final parsedBaseUrl = Uri.parse(_finampUserHelper.currentUser!.baseUrl);
 
@@ -550,7 +553,9 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler {
       pathSegments: builtPath,
       queryParameters: {
         "UserId": _finampUserHelper.currentUser!.id,
-        "DeviceId": androidId ?? iosDeviceInfo!.identifierForVendor,
+        "DeviceId": androidId ??
+            iosDeviceInfo?.identifierForVendor ??
+            linuxDeviceInfo!.machineId,
         // TODO: Do platform checks for this
         "Container":
             "opus,webm|opus,mp3,aac,m4a|aac,m4a|alac,m4b|aac,flac,webma,webm|webma,wav,ogg",
