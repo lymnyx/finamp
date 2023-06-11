@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../components/DownloadsScreen/download_favourites_button.dart';
 import '../components/DownloadsScreen/downloads_overview.dart';
 import '../components/DownloadsScreen/downloaded_albums_list.dart';
 import '../components/DownloadsScreen/download_error_screen_button.dart';
@@ -17,6 +18,7 @@ class DownloadsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.downloads),
         actions: const [
+          DownloadFavouritesButton(),
           DownloadMissingImagesButton(),
           DownloadErrorScreenButton()
         ],

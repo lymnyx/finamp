@@ -207,6 +207,9 @@ class FinampSettings {
   SortOrder getSortOrder(TabContentType tabType) {
     return tabSortOrder[tabType] ?? SortOrder.ascending;
   }
+
+  Iterable<TabContentType> get shownTabs =>
+      showTabs.entries.where((e) => e.value).map((e) => e.key);
 }
 
 /// Custom storage locations for storing music.
@@ -329,6 +332,25 @@ enum TabContentType {
         return AppLocalizations.of(context)!.genres;
       case TabContentType.playlists:
         return AppLocalizations.of(context)!.playlists;
+    }
+  }
+
+  /// The includeItemTypes value that this tab represents for querying the
+  /// Jellyfin API
+  String get includeItemTypes {
+    switch (this) {
+      case TabContentType.songs:
+        return "Audio";
+      case TabContentType.albums:
+        return "MusicAlbum";
+      case TabContentType.artists:
+        return "MusicArtist";
+      case TabContentType.genres:
+        return "MusicGenre";
+      case TabContentType.playlists:
+        return "Playlist";
+      default:
+        throw const FormatException("Unsupported TabContentType");
     }
   }
 }
