@@ -126,391 +126,397 @@ class _AlbumListTileState extends State<AlbumListTile> {
       },
     );
 
-    return GestureDetector(
-        onLongPressStart: (details) async {
-          unawaited(Feedback.forLongPress(context));
+    void menuCallback({
+      required Offset localPosition,
+      required Offset globalPosition,
+    }) async {
+      unawaited(Feedback.forLongPress(context));
 
-          final isOffline = FinampSettingsHelper.finampSettings.isOffline;
+      final isOffline = FinampSettingsHelper.finampSettings.isOffline;
 
-          final isarDownloads = GetIt.instance<IsarDownloads>();
-          final bool isDownloadRequired = isarDownloads
-              .getStatus(
-                  DownloadStub.fromItem(
-                      type: DownloadItemType.collection, item: widget.item),
-                  null)
-              .isRequired;
+      final isarDownloads = GetIt.instance<IsarDownloads>();
+      final bool isDownloadRequired = isarDownloads
+          .getStatus(
+              DownloadStub.fromItem(
+                  type: DownloadItemType.collection, item: widget.item),
+              null)
+          .isRequired;
 
-          final selection = await showMenu<AlbumListTileMenuItems>(
-            context: context,
-            position: RelativeRect.fromLTRB(
-              details.globalPosition.dx,
-              details.globalPosition.dy,
-              screenSize.width - details.globalPosition.dx,
-              screenSize.height - details.globalPosition.dy,
+      final selection = await showMenu<AlbumListTileMenuItems>(
+        context: context,
+        position: RelativeRect.fromLTRB(
+          globalPosition.dx,
+          globalPosition.dy,
+          screenSize.width - globalPosition.dx,
+          screenSize.height - globalPosition.dy,
+        ),
+        items: [
+          widget.item.userData!.isFavorite
+              ? PopupMenuItem<AlbumListTileMenuItems>(
+                  value: AlbumListTileMenuItems.removeFavourite,
+                  child: ListTile(
+                    leading: const Icon(Icons.favorite_border),
+                    title:
+                        Text(AppLocalizations.of(context)!.removeFavourite),
+                  ),
+                )
+              : PopupMenuItem<AlbumListTileMenuItems>(
+                  value: AlbumListTileMenuItems.addFavourite,
+                  child: ListTile(
+                    leading: const Icon(Icons.favorite),
+                    title: Text(AppLocalizations.of(context)!.addFavourite),
+                  ),
+                ),
+          _jellyfinApiHelper.selectedMixAlbums.contains(widget.item)
+              ? PopupMenuItem<AlbumListTileMenuItems>(
+                  value: AlbumListTileMenuItems.removeFromMixList,
+                  child: ListTile(
+                    leading: const Icon(Icons.explore_off),
+                    title:
+                        Text(AppLocalizations.of(context)!.removeFromMix),
+                  ),
+                )
+              : PopupMenuItem<AlbumListTileMenuItems>(
+                  value: AlbumListTileMenuItems.addToMixList,
+                  child: ListTile(
+                    leading: const Icon(Icons.explore),
+                    title: Text(AppLocalizations.of(context)!.addToMix),
+                  ),
+                ),
+          if (_queueService.getQueue().nextUp.isNotEmpty)
+            PopupMenuItem<AlbumListTileMenuItems>(
+              value: AlbumListTileMenuItems.playNext,
+              child: ListTile(
+                leading: const Icon(Icons.hourglass_bottom),
+                title: Text(AppLocalizations.of(context)!.playNext),
+              ),
             ),
-            items: [
-              widget.item.userData!.isFavorite
-                  ? PopupMenuItem<AlbumListTileMenuItems>(
-                      value: AlbumListTileMenuItems.removeFavourite,
-                      child: ListTile(
-                        leading: const Icon(Icons.favorite_border),
-                        title:
-                            Text(AppLocalizations.of(context)!.removeFavourite),
-                      ),
-                    )
-                  : PopupMenuItem<AlbumListTileMenuItems>(
-                      value: AlbumListTileMenuItems.addFavourite,
-                      child: ListTile(
-                        leading: const Icon(Icons.favorite),
-                        title: Text(AppLocalizations.of(context)!.addFavourite),
-                      ),
-                    ),
-              _jellyfinApiHelper.selectedMixAlbums.contains(widget.item)
-                  ? PopupMenuItem<AlbumListTileMenuItems>(
-                      value: AlbumListTileMenuItems.removeFromMixList,
-                      child: ListTile(
-                        leading: const Icon(Icons.explore_off),
-                        title:
-                            Text(AppLocalizations.of(context)!.removeFromMix),
-                      ),
-                    )
-                  : PopupMenuItem<AlbumListTileMenuItems>(
-                      value: AlbumListTileMenuItems.addToMixList,
-                      child: ListTile(
-                        leading: const Icon(Icons.explore),
-                        title: Text(AppLocalizations.of(context)!.addToMix),
-                      ),
-                    ),
-              if (_queueService.getQueue().nextUp.isNotEmpty)
-                PopupMenuItem<AlbumListTileMenuItems>(
-                  value: AlbumListTileMenuItems.playNext,
+          PopupMenuItem<AlbumListTileMenuItems>(
+            value: AlbumListTileMenuItems.addToNextUp,
+            child: ListTile(
+              leading: const Icon(Icons.hourglass_top),
+              title: Text(AppLocalizations.of(context)!.addToNextUp),
+            ),
+          ),
+          if (_queueService.getQueue().nextUp.isNotEmpty)
+            PopupMenuItem<AlbumListTileMenuItems>(
+              value: AlbumListTileMenuItems.shuffleNext,
+              child: ListTile(
+                leading: const Icon(Icons.hourglass_bottom),
+                title: Text(AppLocalizations.of(context)!.shuffleNext),
+              ),
+            ),
+          PopupMenuItem<AlbumListTileMenuItems>(
+            value: AlbumListTileMenuItems.shuffleToNextUp,
+            child: ListTile(
+              leading: const Icon(Icons.hourglass_top),
+              title: Text(AppLocalizations.of(context)!.shuffleToNextUp),
+            ),
+          ),
+          PopupMenuItem<AlbumListTileMenuItems>(
+            value: AlbumListTileMenuItems.addToQueue,
+            child: ListTile(
+              leading: const Icon(Icons.queue_music),
+              title: Text(AppLocalizations.of(context)!.addToQueue),
+            ),
+          ),
+          PopupMenuItem<AlbumListTileMenuItems>(
+            value: AlbumListTileMenuItems.shuffleToQueue,
+            child: ListTile(
+              leading: const Icon(Icons.queue_music),
+              title: Text(AppLocalizations.of(context)!.shuffleToQueue),
+            ),
+          ),
+          isDownloadRequired
+              ? PopupMenuItem<AlbumListTileMenuItems>(
+                  value: AlbumListTileMenuItems.delete,
                   child: ListTile(
-                    leading: const Icon(Icons.hourglass_bottom),
-                    title: Text(AppLocalizations.of(context)!.playNext),
+                    leading: const Icon(Icons.delete),
+                    title: Text(AppLocalizations.of(context)!.deleteItem),
+                  ),
+                )
+              : PopupMenuItem<AlbumListTileMenuItems>(
+                  enabled: !isOffline,
+                  value: AlbumListTileMenuItems.download,
+                  child: ListTile(
+                    leading: const Icon(Icons.file_download),
+                    title: Text(AppLocalizations.of(context)!.downloadItem),
+                    enabled: !isOffline,
                   ),
                 ),
-              PopupMenuItem<AlbumListTileMenuItems>(
-                value: AlbumListTileMenuItems.addToNextUp,
-                child: ListTile(
-                  leading: const Icon(Icons.hourglass_top),
-                  title: Text(AppLocalizations.of(context)!.addToNextUp),
-                ),
-              ),
-              if (_queueService.getQueue().nextUp.isNotEmpty)
-                PopupMenuItem<AlbumListTileMenuItems>(
-                  value: AlbumListTileMenuItems.shuffleNext,
-                  child: ListTile(
-                    leading: const Icon(Icons.hourglass_bottom),
-                    title: Text(AppLocalizations.of(context)!.shuffleNext),
-                  ),
-                ),
-              PopupMenuItem<AlbumListTileMenuItems>(
-                value: AlbumListTileMenuItems.shuffleToNextUp,
-                child: ListTile(
-                  leading: const Icon(Icons.hourglass_top),
-                  title: Text(AppLocalizations.of(context)!.shuffleToNextUp),
-                ),
-              ),
-              PopupMenuItem<AlbumListTileMenuItems>(
-                value: AlbumListTileMenuItems.addToQueue,
-                child: ListTile(
-                  leading: const Icon(Icons.queue_music),
-                  title: Text(AppLocalizations.of(context)!.addToQueue),
-                ),
-              ),
-              PopupMenuItem<AlbumListTileMenuItems>(
-                value: AlbumListTileMenuItems.shuffleToQueue,
-                child: ListTile(
-                  leading: const Icon(Icons.queue_music),
-                  title: Text(AppLocalizations.of(context)!.shuffleToQueue),
-                ),
-              ),
-              isDownloadRequired
-                  ? PopupMenuItem<AlbumListTileMenuItems>(
-                      value: AlbumListTileMenuItems.delete,
-                      child: ListTile(
-                        leading: const Icon(Icons.delete),
-                        title: Text(AppLocalizations.of(context)!.deleteItem),
-                      ),
-                    )
-                  : PopupMenuItem<AlbumListTileMenuItems>(
-                      enabled: !isOffline,
-                      value: AlbumListTileMenuItems.download,
-                      child: ListTile(
-                        leading: const Icon(Icons.file_download),
-                        title: Text(AppLocalizations.of(context)!.downloadItem),
-                        enabled: !isOffline,
-                      ),
-                    ),
-            ],
-          );
+        ],
+      );
 
-          if (!mounted) return;
-          var pretranslatedName = widget.item.name ??
-              AppLocalizations.of(context)!.placeholderSource;
+      if (!mounted) return;
+      var pretranslatedName = widget.item.name ??
+          AppLocalizations.of(context)!.placeholderSource;
 
-          switch (selection) {
-            case AlbumListTileMenuItems.addFavourite:
-              try {
-                final newUserData =
-                    await _jellyfinApiHelper.addFavourite(widget.item.id);
+      switch (selection) {
+        case AlbumListTileMenuItems.addFavourite:
+          try {
+            final newUserData =
+                await _jellyfinApiHelper.addFavourite(widget.item.id);
 
-                if (!mounted) return;
+            if (!mounted) return;
 
-                setState(() {
-                  widget.item.userData = newUserData;
-                });
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.removeFavourite:
-              try {
-                final newUserData =
-                    await _jellyfinApiHelper.removeFavourite(widget.item.id);
-
-                if (!mounted) return;
-
-                setState(() {
-                  widget.item.userData = newUserData;
-                });
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.addToMixList:
-              try {
-                _jellyfinApiHelper.addAlbumToMixBuilderList(widget.item);
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.removeFromMixList:
-              try {
-                _jellyfinApiHelper.removeAlbumFromMixBuilderList(widget.item);
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.playNext:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "ParentIndexNumber,IndexNumber,SortName",
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addNext(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmPlayNext("album"));
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.addToNextUp:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "ParentIndexNumber,IndexNumber,SortName",
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addToNextUp(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmAddToNextUp("album"));
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.shuffleNext:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "Random",
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addNext(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmPlayNext("album"));
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.shuffleToNextUp:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "Random",
-                  //TODO this isn't working anymore with Jellyfin 10.9 (unstable)
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addToNextUp(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmShuffleToNextUp);
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.addToQueue:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "ParentIndexNumber,IndexNumber,SortName",
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addToQueue(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmAddToQueue("album"));
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.shuffleToQueue:
-              try {
-                List<BaseItemDto>? albumTracks =
-                    await _jellyfinApiHelper.getItems(
-                  parentItem: widget.item,
-                  sortBy: "Random",
-                  includeItemTypes: "Audio",
-                );
-
-                if (albumTracks == null) {
-                  GlobalSnackbar.message((scaffold) =>
-                      AppLocalizations.of(scaffold)!.couldNotLoad("album"));
-                  return;
-                }
-
-                await _queueService.addToQueue(
-                    items: albumTracks,
-                    source: QueueItemSource(
-                      type: QueueItemSourceType.nextUpAlbum,
-                      name: QueueItemSourceName(
-                          type: QueueItemSourceNameType.preTranslated,
-                          pretranslatedName: pretranslatedName),
-                      id: widget.item.id,
-                      item: widget.item,
-                    ));
-
-                GlobalSnackbar.message((scaffold) =>
-                    AppLocalizations.of(scaffold)!.confirmAddToQueue("album"));
-
-                setState(() {});
-              } catch (e) {
-                GlobalSnackbar.error(e);
-              }
-              break;
-            case AlbumListTileMenuItems.download:
-              var item = DownloadStub.fromItem(
-                  type: DownloadItemType.collection, item: widget.item);
-              await DownloadDialog.show(context, item, null);
-            case AlbumListTileMenuItems.delete:
-              var item = DownloadStub.fromItem(
-                  type: DownloadItemType.collection, item: widget.item);
-              await isarDownloads.deleteDownload(stub: item);
-            default:
-              break;
+            setState(() {
+              widget.item.userData = newUserData;
+            });
+          } catch (e) {
+            GlobalSnackbar.error(e);
           }
-        },
+          break;
+        case AlbumListTileMenuItems.removeFavourite:
+          try {
+            final newUserData =
+                await _jellyfinApiHelper.removeFavourite(widget.item.id);
+
+            if (!mounted) return;
+
+            setState(() {
+              widget.item.userData = newUserData;
+            });
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.addToMixList:
+          try {
+            _jellyfinApiHelper.addAlbumToMixBuilderList(widget.item);
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.removeFromMixList:
+          try {
+            _jellyfinApiHelper.removeAlbumFromMixBuilderList(widget.item);
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.playNext:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "ParentIndexNumber,IndexNumber,SortName",
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addNext(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmPlayNext("album"));
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.addToNextUp:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "ParentIndexNumber,IndexNumber,SortName",
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addToNextUp(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmAddToNextUp("album"));
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.shuffleNext:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "Random",
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addNext(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmPlayNext("album"));
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.shuffleToNextUp:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "Random",
+              //TODO this isn't working anymore with Jellyfin 10.9 (unstable)
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addToNextUp(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmShuffleToNextUp);
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.addToQueue:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "ParentIndexNumber,IndexNumber,SortName",
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addToQueue(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmAddToQueue("album"));
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.shuffleToQueue:
+          try {
+            List<BaseItemDto>? albumTracks =
+                await _jellyfinApiHelper.getItems(
+              parentItem: widget.item,
+              sortBy: "Random",
+              includeItemTypes: "Audio",
+            );
+
+            if (albumTracks == null) {
+              GlobalSnackbar.message((scaffold) =>
+                  AppLocalizations.of(scaffold)!.couldNotLoad("album"));
+              return;
+            }
+
+            await _queueService.addToQueue(
+                items: albumTracks,
+                source: QueueItemSource(
+                  type: QueueItemSourceType.nextUpAlbum,
+                  name: QueueItemSourceName(
+                      type: QueueItemSourceNameType.preTranslated,
+                      pretranslatedName: pretranslatedName),
+                  id: widget.item.id,
+                  item: widget.item,
+                ));
+
+            GlobalSnackbar.message((scaffold) =>
+                AppLocalizations.of(scaffold)!.confirmAddToQueue("album"));
+
+            setState(() {});
+          } catch (e) {
+            GlobalSnackbar.error(e);
+          }
+          break;
+        case AlbumListTileMenuItems.download:
+          var item = DownloadStub.fromItem(
+              type: DownloadItemType.collection, item: widget.item);
+          await DownloadDialog.show(context, item, null);
+        case AlbumListTileMenuItems.delete:
+          var item = DownloadStub.fromItem(
+              type: DownloadItemType.collection, item: widget.item);
+          await isarDownloads.deleteDownload(stub: item);
+        default:
+          break;
+      }
+    }
+
+    return GestureDetector(
+        onLongPressStart: (details) => menuCallback(localPosition: details.localPosition, globalPosition: details.globalPosition),
+        onSecondaryTapDown: (details) => menuCallback(localPosition: details.localPosition, globalPosition: details.globalPosition),
         child: listTile);
   }
 }
